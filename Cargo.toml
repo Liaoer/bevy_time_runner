@@ -14,7 +14,7 @@ categories = [ "game-development" ]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy_hierarchy = { path = "../../bevy_engine/crates/bevy_hierarchy"  }
+#bevy_hierarchy = { path = "../../bevy_engine/crates/bevy_hierarchy"  }
 bevy_time = { path = "../../bevy_engine/crates/bevy_time", default-features = false }
 bevy_ecs = { path = "../../bevy_engine/crates/bevy_ecs", default-features = false }
 bevy_app = { path = "../../bevy_engine/crates/bevy_app", default-features = false, optional = true }
