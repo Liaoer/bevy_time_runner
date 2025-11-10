@@ -1,5 +1,4 @@
 use bevy_ecs::prelude::*;
-//use bevy_hierarchy::prelude::*;
 #[cfg(feature = "bevy_reflect")]
 use bevy_reflect::prelude::*;
 use bevy_time::prelude::*;
@@ -382,10 +381,10 @@ pub struct SkipTimeRunner;
 
 /// Fired when a time runner repeated or completed
 #[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Event)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Message, EntityEvent)]
 pub struct TimeRunnerEnded {
     /// [`TimeRunner`] that just ended
-    pub time_runner: Entity,
+    pub entity: Entity,
     /// Currently timer direction. If is [`RepeatStyle::PingPong`], the current
     /// direction will be its already changed direction.
     pub current_direction: TimeDirection,
@@ -409,7 +408,7 @@ pub fn tick_time_runner_system(
     mut commands: Commands,
     time: Res<Time>,
     mut q_time_runner: Query<(Entity, &mut TimeRunner)>,
-    mut ended_writer: EventWriter<TimeRunnerEnded>,
+    mut ended_writer: MessageWriter<TimeRunnerEnded>,
 ) {
     let delta = time.delta_secs();
     q_time_runner
@@ -434,12 +433,12 @@ pub fn tick_time_runner_system(
             };
             if send_event {
                 let event = TimeRunnerEnded {
-                    time_runner: entity,
+                    entity,
                     current_direction: time_runner.direction,
                     with_repeat: time_runner.repeat.map(|r| r.0),
                 };
-                commands.trigger_targets(event.clone(), entity);
-                ended_writer.send(event);
+                commands.trigger(event.clone());
+                ended_writer.write(event);
             }
         });
 }
@@ -463,10 +462,10 @@ pub fn time_runner_system(
             continue;
         }
 
-        let children = children.iter().flat_map(|a| a.iter());
+        let children = children.iter().flat_map(|a| a.into_iter());
         let mut spans = q_span.iter_many_mut([&runner_entity].into_iter().chain(children));
         while let Some((span_entity, _, _)) = spans.fetch_next() {
-            let Some(mut entity) = commands.get_entity(span_entity) else {
+            let Ok(mut entity) = commands.get_entity(span_entity) else {
                 continue;
             };
             entity.remove::<TimeSpanProgress>();
@@ -477,10 +476,10 @@ pub fn time_runner_system(
     q_added_skip
         .iter()
         .for_each(|(runner_entity, _, children)| {
-            let children = children.iter().flat_map(|a| a.iter());
+            let children = children.iter().flat_map(|a| a.into_iter());
             let mut spans = q_span.iter_many_mut([&runner_entity].into_iter().chain(children));
             while let Some((span_entity, _, _)) = spans.fetch_next() {
-                let Some(mut entity) = commands.get_entity(span_entity) else {
+                let Ok(mut entity) = commands.get_entity(span_entity) else {
                     continue;
                 };
                 entity.remove::<TimeSpanProgress>();
@@ -505,7 +504,7 @@ pub fn time_runner_system(
             let runner_elasped_previous = runner.elasped().previous;
             let runner_direction = runner.direction;
 
-            let children = children.iter().flat_map(|a| a.iter());
+            let children = children.iter().flat_map(|a| a.into_iter());
             let mut spans = q_span.iter_many_mut([&runner_entity].into_iter().chain(children));
             while let Some((span_entity, time_span_progress, span)) = spans.fetch_next() {
                 let now_quotient = span.quotient(runner_elasped_now);

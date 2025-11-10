@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.5.2 - 2025-10-6
+- Fix documentation
+
+## v0.5.1 - 2025-10-03
+- Update Bevy to 0.17.2
+
+## v0.5.0 - 2025-10-03
+- Migrate to bevy 0.17
+
+## v0.4.0 - 2025-05-09
+- Migrate to bevy 0.16
+- Change Rust edition to 2024
+- Add Nix flake
+
 ## v0.3.0 - 2024-12-09
 
 - Migrate to bevy 0.15
